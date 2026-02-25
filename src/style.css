@@ -879,7 +879,7 @@ section#nuestros-trabajos {
     aspect-ratio: 9 / 16;
     border-radius: 12px;
     overflow: hidden;
-    background: var(--grey-light);
+    background: var(--grey-dark);
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     position: relative;

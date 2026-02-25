@@ -150,6 +150,9 @@ document.querySelectorAll('.flip-card').forEach(card => {
 
     if (!lightbox || !video) return;
 
+    // URL base para vídeos (en Vercel/producción las rutas deben ser absolutas desde el origen)
+    const getVideoUrl = (filename) => new URL('/videos/' + encodeURIComponent(filename), window.location.origin).href;
+
     // Cargar miniatura solo cuando la card está visible (o cerca) para no cargar 15 vídeos a la vez
     const observer = new IntersectionObserver(
         (entries) => {
@@ -160,7 +163,7 @@ document.querySelectorAll('.flip-card').forEach(card => {
                 const thumb = card.querySelector('.trabajos-video-thumb');
                 if (filename && thumb && !thumb.src) {
                     thumb.preload = 'metadata';
-                    thumb.src = '/videos/' + encodeURIComponent(filename);
+                    thumb.src = getVideoUrl(filename);
                 }
             });
         },
@@ -170,7 +173,7 @@ document.querySelectorAll('.flip-card').forEach(card => {
 
     function openVideo(filename) {
         video.preload = 'auto';
-        video.src = '/videos/' + encodeURIComponent(filename);
+        video.src = getVideoUrl(filename);
         lightbox.classList.add('open');
         lightbox.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
