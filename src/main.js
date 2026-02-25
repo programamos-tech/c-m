@@ -1,3 +1,22 @@
+// Animaciones de entrada al hacer scroll
+(function () {
+    const revealEls = document.querySelectorAll('.reveal');
+    if (!revealEls.length) return;
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                }
+            });
+        },
+        { rootMargin: '0px 0px -60px 0px', threshold: 0.1 }
+    );
+
+    revealEls.forEach((el) => observer.observe(el));
+})();
+
 // Header scroll effect
 window.addEventListener('scroll', () => {
     const header = document.getElementById('header');
