@@ -68,34 +68,6 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Hero slideshow: rotar 3 imágenes cada 5 segundos
-(function () {
-    const slides = document.querySelectorAll('.hero .hero-bg');
-    const dots = document.getElementById('hero-dots');
-    if (!slides.length || !dots) return;
-
-    const dotEls = dots.querySelectorAll('span');
-    let current = 0;
-    const total = slides.length;
-    const intervalMs = 5000;
-
-    function goTo(index) {
-        current = (index + total) % total;
-        slides.forEach((s, i) => s.classList.toggle('active', i === current));
-        dotEls.forEach((d, i) => d.classList.toggle('active', i === current));
-    }
-
-    let timer = setInterval(() => goTo(current + 1), intervalMs);
-
-    dotEls.forEach((dot, i) => {
-        dot.addEventListener('click', () => {
-            clearInterval(timer);
-            goTo(i);
-            timer = setInterval(() => goTo(current + 1), intervalMs);
-        });
-    });
-})();
-
 // Servicios: flip card al hacer click
 document.querySelectorAll('.flip-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -108,4 +80,103 @@ document.querySelectorAll('.flip-card').forEach(card => {
         }
     });
 });
+
+// Lightbox acabados: clic en card abre imagen a pantalla completa
+(function () {
+    const lightbox = document.getElementById('acabados-lightbox');
+    const lightboxImg = lightbox?.querySelector('.lightbox-img');
+    const backdrop = lightbox?.querySelector('.lightbox-backdrop');
+    const closeBtn = lightbox?.querySelector('.lightbox-close');
+    const cards = document.querySelectorAll('.acabados-video-card');
+
+    if (!lightbox || !lightboxImg) return;
+
+    function openLightbox(src) {
+        lightboxImg.src = src;
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+    }
+
+    cards.forEach((card) => {
+        const img = card.querySelector('.acabados-img');
+        if (!img?.src) return;
+        card.addEventListener('click', (e) => {
+            e.preventDefault();
+            openLightbox(img.src);
+        });
+    });
+
+    backdrop?.addEventListener('click', closeLightbox);
+    closeBtn?.addEventListener('click', closeLightbox);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+    });
+})();
+
+// Nuestros trabajos: cargar miniaturas solo cuando la card entra en viewport (ahorra ancho de banda) y clic abre video en lightbox
+(function () {
+    const lightbox = document.getElementById('trabajos-video-lightbox');
+    const video = document.getElementById('trabajos-video-player');
+    const backdrop = lightbox?.querySelector('.video-lightbox-backdrop');
+    const closeBtn = lightbox?.querySelector('.video-lightbox-close');
+    const cards = document.querySelectorAll('.trabajos-video-card');
+
+    if (!lightbox || !video) return;
+
+    // Cargar miniatura solo cuando la card está visible (o cerca) para no cargar 15 vídeos a la vez
+    const observer = new IntersectionObserver(
+        (entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                const card = entry.target;
+                const filename = card.getAttribute('data-video');
+                const thumb = card.querySelector('.trabajos-video-thumb');
+                if (filename && thumb && !thumb.src) {
+                    thumb.preload = 'metadata';
+                    thumb.src = '/videos/' + encodeURIComponent(filename);
+                }
+            });
+        },
+        { rootMargin: '100px', threshold: 0.01 }
+    );
+    cards.forEach((card) => observer.observe(card));
+
+    function openVideo(filename) {
+        video.preload = 'auto';
+        video.src = '/videos/' + encodeURIComponent(filename);
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        video.play().catch(() => {});
+    }
+
+    function closeVideo() {
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        video.pause();
+        video.removeAttribute('src');
+    }
+
+    cards.forEach((card) => {
+        const filename = card.getAttribute('data-video');
+        if (!filename) return;
+        card.addEventListener('click', () => openVideo(filename));
+    });
+
+    backdrop?.addEventListener('click', closeVideo);
+    closeBtn?.addEventListener('click', closeVideo);
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.classList.contains('open')) closeVideo();
+    });
+})();
 
