@@ -128,8 +128,13 @@ document.querySelectorAll('.flip-card').forEach(card => {
     const backdrop = lightbox?.querySelector('.video-lightbox-backdrop');
     const closeBtn = lightbox?.querySelector('.video-lightbox-close');
     const cards = document.querySelectorAll('.trabajos-video-card');
+    const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
 
     if (!lightbox || !video) return;
+
+    function videoUrl(filename) {
+        return base + '/videos/' + encodeURIComponent(filename);
+    }
 
     // Cargar miniatura solo cuando la card está visible (o cerca) para no cargar 15 vídeos a la vez
     const observer = new IntersectionObserver(
@@ -141,7 +146,7 @@ document.querySelectorAll('.flip-card').forEach(card => {
                 const thumb = card.querySelector('.trabajos-video-thumb');
                 if (filename && thumb && !thumb.src) {
                     thumb.preload = 'metadata';
-                    thumb.src = '/videos/' + encodeURIComponent(filename);
+                    thumb.src = videoUrl(filename);
                 }
             });
         },
@@ -151,7 +156,7 @@ document.querySelectorAll('.flip-card').forEach(card => {
 
     function openVideo(filename) {
         video.preload = 'auto';
-        video.src = '/videos/' + encodeURIComponent(filename);
+        video.src = videoUrl(filename);
         lightbox.classList.add('open');
         lightbox.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
