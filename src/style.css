@@ -29,6 +29,9 @@
 html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    /* En iOS/iPad el scroll debe ocurrir en el documento; esto evita que el hero “trape” el gesto */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -38,6 +41,8 @@ body {
     line-height: 1.6;
     font-size: 1rem;
     overflow-x: hidden;
+    /* Permite siempre el scroll vertical con el dedo en tablet/móvil */
+    touch-action: pan-y;
 }
 
 h1, h2, h3, h4 {
@@ -469,8 +474,10 @@ nav ul li a:hover {
 
 /* Hero */
 .hero {
+    /* 100svh = viewport “pequeño” (con barra del navegador) para que el primer scroll baje de una */
     min-height: 100vh;
     min-height: 100dvh;
+    min-height: 100svh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -480,6 +487,8 @@ nav ul li a:hover {
     position: relative;
     overflow: hidden;
     overflow-x: hidden;
+    /* Evita que iOS interprete el hero como contenedor de scroll y “trape” el gesto */
+    overscroll-behavior-y: none;
 }
 
 .hero-slides {
@@ -863,6 +872,50 @@ section#nuestros-trabajos {
     max-width: 100%;
 }
 
+/* Mobile: carrusel horizontal (swipe) para los reels de Instagram */
+@media (max-width: 768px) {
+    .instagram-reels-wrap {
+        margin-left: -5%;
+        margin-right: -5%;
+        width: 110%;
+        max-width: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        padding-bottom: 0.5rem;
+    }
+    .instagram-reels-wrap::-webkit-scrollbar {
+        height: 6px;
+    }
+    .instagram-reels-wrap::-webkit-scrollbar-track {
+        background: var(--grey-light);
+        border-radius: 3px;
+    }
+    .instagram-reels-wrap::-webkit-scrollbar-thumb {
+        background: var(--grey-mid);
+        border-radius: 3px;
+    }
+    .instagram-reels-grid {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        justify-content: flex-start;
+        align-items: stretch;
+        padding: 0 5%;
+        width: max-content;
+    }
+    .instagram-reel-item {
+        flex: 0 0 auto;
+        width: min(320px, 85vw);
+        max-width: none;
+        scroll-snap-align: start;
+    }
+    .instagram-reels-grid {
+        scroll-snap-type: x mandatory;
+    }
+}
+
 /* Lightbox video (usado en otros proyectos si se añaden) */
 .video-lightbox {
     position: fixed;
@@ -1062,24 +1115,7 @@ section#servicios {
     will-change: transform;
 }
 
-/* Tablet e iPhone: scroll horizontal manual (swipe) en lugar de animación */
-@media (max-width: 1024px) {
-    .services-carousel-wrap {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
-    /* El track desborda; el wrap es quien hace scroll */
-    .services-carousel {
-        overflow: visible;
-        width: max-content;
-    }
-    .carousel-track {
-        animation: none;
-        will-change: auto;
-    }
-}
+/* Mismo comportamiento en mobile que en desktop: animación continua (como acabados) */
 
 /* Tres copias del mismo bloque: al llegar a -33.333% se ve el mismo contenido que al inicio → flujo infinito sin salto */
 @keyframes carousel-scroll {
@@ -1747,10 +1783,11 @@ footer {
     .logo-img {
         height: 68px;
     }
-    /* Hero más bajo para que el primer scroll baje en iPad/móvil */
+    /* Hero con altura fija en tablet para que el scroll baje de una (iPad no “trape” el gesto) */
     .hero {
-        min-height: 88vh;
-        min-height: 88dvh;
+        min-height: 0;
+        height: 85vh;
+        height: 85dvh;
     }
     .hero-content {
         padding: 0 1.25rem;
@@ -1891,10 +1928,11 @@ footer {
     .logo-img {
         height: 60px;
     }
-    /* Hero un poco más bajo en móvil para que el primer scroll baje (evita “hay que hacer scroll 2 veces” en iOS) */
+    /* Hero con altura fija en móvil para que el primer scroll baje de una en iOS */
     .hero {
-        min-height: 88vh;
-        min-height: 88dvh;
+        min-height: 0;
+        height: 82vh;
+        height: 82dvh;
     }
     .hero-content {
         padding: 0 0.5rem;
