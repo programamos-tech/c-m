@@ -469,8 +469,8 @@ nav ul li a:hover {
 
 /* Hero */
 .hero {
-    height: 100vh;
-    min-height: 600px;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -832,7 +832,7 @@ nav ul li a:hover {
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
 }
 
-/* Nuestros trabajos – carrusel de videos verticales, clic abre lightbox */
+/* Nuestros trabajos – reels de Instagram */
 section#nuestros-trabajos {
     overflow-x: hidden;
 }
@@ -841,90 +841,29 @@ section#nuestros-trabajos {
     margin-bottom: 0.5rem;
 }
 
-.trabajos-carousel-wrap {
-    position: relative;
-    width: 100vw;
-    max-width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    overflow: hidden;
+.instagram-reels-wrap {
     margin-top: 2rem;
 }
 
-.trabajos-carousel {
-    overflow: hidden;
+.instagram-reels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    gap: 2rem;
+    justify-items: center;
+    align-items: start;
+}
+
+.instagram-reel-item {
     width: 100%;
+    max-width: 540px;
+    min-width: 0;
 }
 
-.trabajos-track {
-    display: flex;
-    gap: 1.25rem;
-    padding: 1rem 2rem;
-    width: max-content;
-    animation: trabajos-scroll 55s linear infinite;
-    will-change: transform;
+.instagram-reel-item iframe {
+    max-width: 100%;
 }
 
-.trabajos-carousel-wrap:hover .trabajos-track {
-    animation-play-state: paused;
-}
-
-@keyframes trabajos-scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-33.333%); }
-}
-
-.trabajos-video-card {
-    flex: 0 0 220px;
-    width: 220px;
-    aspect-ratio: 9 / 16;
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--grey-dark);
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    position: relative;
-    transition: box-shadow 0.35s ease, transform 0.35s ease;
-}
-
-.trabajos-video-card:hover {
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
-    transform: scale(1.03);
-}
-
-.trabajos-video-thumb {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    pointer-events: none;
-    transition: transform 0.5s ease;
-}
-
-.trabajos-video-card:hover .trabajos-video-thumb {
-    transform: scale(1.08);
-}
-
-.trabajos-play {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.35);
-    color: var(--white);
-    transition: background 0.3s ease;
-}
-
-.trabajos-video-card:hover .trabajos-play {
-    background: rgba(0, 0, 0, 0.25);
-}
-
-.trabajos-play .material-icons {
-    font-size: 64px;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
-}
-
-/* Lightbox video nuestros trabajos */
+/* Lightbox video (usado en otros proyectos si se añaden) */
 .video-lightbox {
     position: fixed;
     inset: 0;
@@ -1121,6 +1060,25 @@ section#servicios {
     width: max-content;
     animation: carousel-scroll 60s linear infinite;
     will-change: transform;
+}
+
+/* Tablet e iPhone: scroll horizontal manual (swipe) en lugar de animación */
+@media (max-width: 1024px) {
+    .services-carousel-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    /* El track desborda; el wrap es quien hace scroll */
+    .services-carousel {
+        overflow: visible;
+        width: max-content;
+    }
+    .carousel-track {
+        animation: none;
+        will-change: auto;
+    }
 }
 
 /* Tres copias del mismo bloque: al llegar a -33.333% se ve el mismo contenido que al inicio → flujo infinito sin salto */
@@ -1415,6 +1373,19 @@ footer {
     min-width: 10rem;
 }
 
+/* Botón principal del footer: fondo claro para que se vea sobre el footer oscuro */
+.btn-hero-footer-primary {
+    background: var(--white) !important;
+    color: var(--black) !important;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.btn-hero-footer-primary:hover {
+    background: var(--grey-light) !important;
+    color: var(--black) !important;
+    border-color: var(--white);
+}
+
 .btn-hero-outline-footer {
     background: transparent !important;
     color: var(--white);
@@ -1541,10 +1512,43 @@ footer {
     text-align: center;
     font-size: 0.85rem;
     opacity: 0.7;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
 }
 
 .footer-bottom p {
     margin: 0;
+}
+
+.footer-credit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+}
+
+.footer-credit-icon {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0 0.08rem 0 0;
+}
+
+.footer-credit-text {
+    color: rgba(255, 255, 255, 0.6);
+    margin-right: 0.15rem;
+}
+
+.footer-credit-link {
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.footer-credit-link:hover {
+    color: var(--white);
+    text-decoration: underline;
 }
 
 /* Scroll to top */
@@ -1700,12 +1704,10 @@ footer {
     .flip-card-front h3 {
         font-size: 1.05rem;
     }
-    .trabajos-video-card,
     .acabados-video-card {
         flex: 0 0 200px;
         width: 200px;
     }
-    .trabajos-track,
     .acabados-track {
         padding: 1rem 1.5rem;
         gap: 1rem;
@@ -1744,6 +1746,11 @@ footer {
     }
     .logo-img {
         height: 68px;
+    }
+    /* Hero más bajo para que el primer scroll baje en iPad/móvil */
+    .hero {
+        min-height: 88vh;
+        min-height: 88dvh;
     }
     .hero-content {
         padding: 0 1.25rem;
@@ -1803,13 +1810,6 @@ footer {
     .acabados-video-card {
         flex: 0 0 180px;
         width: 180px;
-    }
-    .trabajos-video-card {
-        flex: 0 0 180px;
-        width: 180px;
-    }
-    .trabajos-play .material-icons {
-        font-size: 52px;
     }
     .flip-card {
         flex: 0 0 260px;
@@ -1874,8 +1874,7 @@ footer {
         min-width: 220px;
         height: 260px;
     }
-    .acabados-video-card,
-    .trabajos-video-card {
+    .acabados-video-card {
         flex: 0 0 160px;
         width: 160px;
     }
@@ -1892,9 +1891,10 @@ footer {
     .logo-img {
         height: 60px;
     }
+    /* Hero un poco más bajo en móvil para que el primer scroll baje (evita “hay que hacer scroll 2 veces” en iOS) */
     .hero {
-        min-height: 100dvh;
-        min-height: 100vh;
+        min-height: 88vh;
+        min-height: 88dvh;
     }
     .hero-content {
         padding: 0 0.5rem;
@@ -1985,18 +1985,13 @@ footer {
         font-size: 0.8rem;
     }
     .carousel-track,
-    .trabajos-track,
     .acabados-track {
         padding: 0.75rem 1rem;
         gap: 0.75rem;
     }
-    .trabajos-video-card,
     .acabados-video-card {
         flex: 0 0 140px;
         width: 140px;
-    }
-    .trabajos-play .material-icons {
-        font-size: 44px;
     }
     .project-card {
         padding: 1rem;
