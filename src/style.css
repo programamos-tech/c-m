@@ -28,10 +28,8 @@
 
 html {
     scroll-behavior: smooth;
-    overflow-x: hidden;
-    /* En iOS/iPad el scroll debe ocurrir en el documento; esto evita que el hero “trape” el gesto */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: clip;
+    overflow-y: visible;
 }
 
 body {
@@ -40,9 +38,8 @@ body {
     color: var(--text-dark);
     line-height: 1.6;
     font-size: 1rem;
-    overflow-x: hidden;
-    /* Permite siempre el scroll vertical con el dedo en tablet/móvil */
-    touch-action: pan-y;
+    overflow-x: clip;
+    overflow-y: visible;
 }
 
 h1, h2, h3, h4 {
@@ -88,8 +85,8 @@ section {
 /* Quiénes somos – sección negra después del hero */
 .quienes-somos-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
+    grid-template-columns: 2fr 3fr;
+    gap: 5.5rem;
     align-items: center;
 }
 
@@ -147,6 +144,8 @@ section {
     overflow: hidden;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
     transition: box-shadow 0.35s ease;
+    max-width: 380px;
+    margin-left: auto;
 }
 
 .quienes-somos-image-wrap:hover {
@@ -159,6 +158,7 @@ section {
     display: block;
     object-fit: cover;
     transition: transform 0.5s ease;
+    filter: grayscale(100%);
 }
 
 .quienes-somos-image-wrap:hover .quienes-somos-image {
@@ -316,6 +316,7 @@ header {
     z-index: 1000;
     transition: var(--transition);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    overflow: hidden;
 }
 
 .header-inner {
@@ -472,11 +473,9 @@ nav ul li a:hover {
     color: white !important;
 }
 
-/* Hero */
+/* Hero: 100svh = una pantalla “visible” (con barra del navegador) para que el primer scroll baje de una */
 .hero {
-    /* 100svh = viewport “pequeño” (con barra del navegador) para que el primer scroll baje de una */
     min-height: 100vh;
-    min-height: 100dvh;
     min-height: 100svh;
     display: flex;
     flex-direction: column;
@@ -487,8 +486,6 @@ nav ul li a:hover {
     position: relative;
     overflow: hidden;
     overflow-x: hidden;
-    /* Evita que iOS interprete el hero como contenedor de scroll y “trape” el gesto */
-    overscroll-behavior-y: none;
 }
 
 .hero-slides {
@@ -509,6 +506,12 @@ nav ul li a:hover {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+}
+
+.hero-bg.hero-bg-active {
+    opacity: 1;
 }
 
 .hero-overlay {
@@ -819,11 +822,47 @@ nav ul li a:hover {
     text-decoration: underline;
 }
 
-.cotizar-image-wrap {
+.cotizar-images {
     position: sticky;
     top: 6rem;
     border-radius: 12px;
     overflow: hidden;
+    aspect-ratio: 3 / 4;
+    max-height: 75vh;
+}
+
+.cotizar-image-wrap.cotizar-slide {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.cotizar-image-wrap.cotizar-slide .cotizar-image {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+}
+
+.cotizar-image-wrap.cotizar-slide:first-child {
+    animation: cotizar-fade-a 14s ease-in-out infinite;
+}
+
+.cotizar-image-wrap.cotizar-slide:last-child {
+    animation: cotizar-fade-b 14s ease-in-out infinite;
+}
+
+@keyframes cotizar-fade-a {
+    0%, 45% { opacity: 1; }
+    50%, 95% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes cotizar-fade-b {
+    0%, 45% { opacity: 0; }
+    50%, 95% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 .cotizar-image {
@@ -843,7 +882,7 @@ nav ul li a:hover {
 
 /* Nuestros trabajos – reels de Instagram */
 section#nuestros-trabajos {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 #nuestros-trabajos .section-title {
@@ -852,14 +891,20 @@ section#nuestros-trabajos {
 
 .instagram-reels-wrap {
     margin-top: 2rem;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .instagram-reels-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    grid-template-columns: repeat(3, minmax(280px, 340px));
     gap: 2rem;
+    justify-content: center;
     justify-items: center;
     align-items: start;
+    max-width: min(1120px, 100%);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .instagram-reel-item {
@@ -989,7 +1034,7 @@ section#nuestros-trabajos {
 
 /* Acabados – carrusel de videos verticales en loop */
 section#acabados {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 #acabados .section-title {
@@ -1015,7 +1060,7 @@ section#acabados {
     gap: 1.25rem;
     padding: 1rem 2rem;
     width: max-content;
-    animation: acabados-scroll 50s linear infinite;
+    animation: acabados-scroll 90s linear infinite;
     will-change: transform;
 }
 
@@ -1090,7 +1135,7 @@ section#acabados {
 
 /* Servicios – carrusel infinito: ancho completo para que las cards salgan de pantalla */
 section#servicios {
-    overflow-x: hidden;
+    overflow-x: clip;
 }
 
 .services-carousel-wrap {
@@ -1111,11 +1156,42 @@ section#servicios {
     gap: 1.5rem;
     padding: 1rem 2rem;
     width: max-content;
-    animation: carousel-scroll 60s linear infinite;
+    animation: carousel-scroll 100s linear infinite;
     will-change: transform;
 }
 
-/* Mismo comportamiento en mobile que en desktop: animación continua (como acabados) */
+/* Tablet y móvil: scroll horizontal manual (swipe) para ver todas las cards */
+@media (max-width: 1024px) {
+    .services-carousel-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scroll-snap-type: x mandatory;
+    }
+    .services-carousel-wrap::-webkit-scrollbar {
+        height: 6px;
+    }
+    .services-carousel-wrap::-webkit-scrollbar-track {
+        background: var(--grey-light);
+        border-radius: 3px;
+    }
+    .services-carousel-wrap::-webkit-scrollbar-thumb {
+        background: var(--grey-mid);
+        border-radius: 3px;
+    }
+    .services-carousel {
+        overflow: visible;
+        width: max-content;
+    }
+    .carousel-track {
+        animation: none;
+        will-change: auto;
+    }
+    .services-carousel-wrap .flip-card {
+        scroll-snap-align: start;
+    }
+}
 
 /* Tres copias del mismo bloque: al llegar a -33.333% se ve el mismo contenido que al inicio → flujo infinito sin salto */
 @keyframes carousel-scroll {
@@ -1783,11 +1859,8 @@ footer {
     .logo-img {
         height: 68px;
     }
-    /* Hero con altura fija en tablet para que el scroll baje de una (iPad no “trape” el gesto) */
     .hero {
-        min-height: 0;
-        height: 85vh;
-        height: 85dvh;
+        min-height: 85vh;
     }
     .hero-content {
         padding: 0 1.25rem;
@@ -1828,6 +1901,22 @@ footer {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
+    .cotizar-images {
+        position: static;
+        aspect-ratio: auto;
+        max-height: none;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .cotizar-image-wrap.cotizar-slide {
+        position: static;
+        animation: none;
+        opacity: 1;
+    }
+    .cotizar-image-wrap.cotizar-slide .cotizar-image {
+        height: auto;
+    }
     .cotizar-image-wrap {
         position: static;
     }
@@ -1843,6 +1932,7 @@ footer {
     }
     .quienes-somos-image-wrap {
         order: -1;
+        margin-left: 0;
     }
     .acabados-video-card {
         flex: 0 0 180px;
@@ -1928,11 +2018,8 @@ footer {
     .logo-img {
         height: 60px;
     }
-    /* Hero con altura fija en móvil para que el primer scroll baje de una en iOS */
     .hero {
-        min-height: 0;
-        height: 82vh;
-        height: 82dvh;
+        min-height: 82vh;
     }
     .hero-content {
         padding: 0 0.5rem;

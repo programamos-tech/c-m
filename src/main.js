@@ -17,6 +17,19 @@
     revealEls.forEach((el) => observer.observe(el));
 })();
 
+// Hero: rotar imágenes de fondo
+(function () {
+    const slides = document.querySelectorAll('.hero-bg');
+    if (slides.length < 2) return;
+    const INTERVAL_MS = 8000;
+    let current = 0;
+    setInterval(() => {
+        slides[current].classList.remove('hero-bg-active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('hero-bg-active');
+    }, INTERVAL_MS);
+})();
+
 // Header scroll effect
 window.addEventListener('scroll', () => {
     const header = document.getElementById('header');
