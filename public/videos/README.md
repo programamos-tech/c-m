@@ -2,8 +2,7 @@
 
 ## Acabados (carrusel de imágenes)
 Imágenes del carrusel "Acabados que manejamos":
-- `acabado-1.jpeg` … `acabado-7.jpeg`
-- `acabado-8.jpg`, `acabado-9.jpg`
+- `acabado-1.jpeg` … `acabado-15.jpg` (y opcionalmente `acabado-16.jpeg`)
 
 ## Nuestros trabajos (carrusel de videos)
 Videos que se abren al hacer clic (5 en el carrusel):

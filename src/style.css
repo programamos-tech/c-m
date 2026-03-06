@@ -1060,12 +1060,28 @@ section#acabados {
     gap: 1.25rem;
     padding: 1rem 2rem;
     width: max-content;
-    animation: acabados-scroll 90s linear infinite;
+    animation: acabados-scroll 150s linear infinite;
     will-change: transform;
 }
 
 .acabados-carousel-wrap:hover .acabados-track {
     animation-play-state: paused;
+}
+
+/* Tablet y móvil: carrusel acabados animado por JS con transform (sin scroll) */
+@media (max-width: 1024px) {
+    .acabados-carousel-wrap {
+        overflow: hidden;
+        touch-action: pan-y; /* scroll vertical de la página; arrastre horizontal lo maneja JS en touchmove */
+    }
+    .acabados-carousel {
+        overflow: visible;
+        width: max-content;
+    }
+    .acabados-carousel-wrap .acabados-track {
+        animation: none;
+        will-change: transform;
+    }
 }
 
 @keyframes acabados-scroll {
@@ -1160,38 +1176,7 @@ section#servicios {
     will-change: transform;
 }
 
-/* Tablet y móvil: scroll horizontal manual (swipe) para ver todas las cards */
-@media (max-width: 1024px) {
-    .services-carousel-wrap {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-        scroll-snap-type: x mandatory;
-    }
-    .services-carousel-wrap::-webkit-scrollbar {
-        height: 6px;
-    }
-    .services-carousel-wrap::-webkit-scrollbar-track {
-        background: var(--grey-light);
-        border-radius: 3px;
-    }
-    .services-carousel-wrap::-webkit-scrollbar-thumb {
-        background: var(--grey-mid);
-        border-radius: 3px;
-    }
-    .services-carousel {
-        overflow: visible;
-        width: max-content;
-    }
-    .carousel-track {
-        animation: none;
-        will-change: auto;
-    }
-    .services-carousel-wrap .flip-card {
-        scroll-snap-align: start;
-    }
-}
+/* Mismo carrusel automático en desktop y móvil */
 
 /* Tres copias del mismo bloque: al llegar a -33.333% se ve el mismo contenido que al inicio → flujo infinito sin salto */
 @keyframes carousel-scroll {
@@ -1827,6 +1812,37 @@ footer {
     .carousel-track {
         padding: 1rem 1.5rem;
         gap: 1.25rem;
+        animation: none;
+    }
+    /* Permitir que el carrusel haga scroll en móvil: no recortar la sección ni el container */
+       section#servicios {
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+    #servicios .container {
+        overflow-x: visible;
+    }
+    /* Carrusel servicios: scroll nativo */
+    .services-carousel-wrap {
+        overflow-x: scroll;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        touch-action: manipulation;
+        min-height: 320px;
+    }
+    .services-carousel-wrap::-webkit-scrollbar {
+        display: none;
+    }
+    .services-carousel {
+        overflow: visible;
+        width: max-content;
+        min-width: 300vw;
+    }
+    .services-carousel-wrap .flip-card {
+        scroll-snap-align: start;
+        touch-action: pan-x;
     }
     .vision-mission {
         gap: 2rem;
@@ -1897,28 +1913,66 @@ footer {
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
+    #cotizar {
+        padding-top: 1rem;
+    }
     .cotizar-grid {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 0;
+        row-gap: 0;
+    }
+    .cotizar-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+    }
+    .cotizar-step-content h3 {
+        font-size: 1.05rem;
+    }
+    .cotizar-step-content p {
+        font-size: 0.9rem;
+    }
+    .cotizar-steps {
+        margin-bottom: 0;
+    }
+    .cotizar-step {
+        margin-bottom: 1rem;
+    }
+    .cotizar-step:last-of-type {
+        margin-bottom: 0.5rem;
+    }
+    .cotizar-cta {
+        margin-top: 0.25rem;
+        margin-bottom: 0;
+        padding-bottom: 0;
     }
     .cotizar-images {
-        position: static;
-        aspect-ratio: auto;
-        max-height: none;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        position: relative;
+        aspect-ratio: 3 / 4;
+        max-height: 70vh;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        margin-top: -2rem;
+        padding-top: 0;
     }
     .cotizar-image-wrap.cotizar-slide {
-        position: static;
+        position: absolute;
+        inset: 0;
         animation: none;
-        opacity: 1;
+    }
+    .cotizar-image-wrap.cotizar-slide:first-child {
+        animation: cotizar-fade-a 14s ease-in-out infinite;
+    }
+    .cotizar-image-wrap.cotizar-slide:last-child {
+        animation: cotizar-fade-b 14s ease-in-out infinite;
     }
     .cotizar-image-wrap.cotizar-slide .cotizar-image {
-        height: auto;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
     .cotizar-image-wrap {
-        position: static;
+        position: absolute;
     }
     .cotizar-image {
         max-height: none;
@@ -1930,13 +1984,19 @@ footer {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
-    .quienes-somos-image-wrap {
+    .quienes-somos-content {
         order: -1;
+    }
+    .quienes-somos-image-wrap {
         margin-left: 0;
     }
     .acabados-video-card {
-        flex: 0 0 180px;
-        width: 180px;
+        flex: 0 0 260px;
+        width: 260px;
+    }
+    .acabados-track {
+        padding: 1rem 1rem;
+        gap: 1rem;
     }
     .flip-card {
         flex: 0 0 260px;
@@ -2002,8 +2062,8 @@ footer {
         height: 260px;
     }
     .acabados-video-card {
-        flex: 0 0 160px;
-        width: 160px;
+        flex: 0 0 240px;
+        width: 240px;
     }
 }
 
@@ -2115,8 +2175,14 @@ footer {
         gap: 0.75rem;
     }
     .acabados-video-card {
-        flex: 0 0 140px;
-        width: 140px;
+        flex: 0 0 min(280px, 82vw);
+        width: min(280px, 82vw);
+    }
+    #acabados .section-title {
+        margin-bottom: 0.25rem;
+    }
+    .acabados-carousel-wrap {
+        margin-top: 1.25rem;
     }
     .project-card {
         padding: 1rem;
@@ -2139,12 +2205,39 @@ footer {
     .feature-card p {
         font-size: 0.85rem;
     }
+    #cotizar {
+        padding-top: 0.75rem;
+    }
+    .cotizar-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+    .cotizar-step-content h3 {
+        font-size: 1rem;
+    }
+    .cotizar-step-content p {
+        font-size: 0.9rem;
+    }
     .cotizar-steps {
         gap: 1.5rem;
     }
+    .cotizar-step {
+        margin-bottom: 0.75rem;
+    }
+    .cotizar-step:last-of-type {
+        margin-bottom: 0.35rem;
+    }
     .cotizar-cta {
         font-size: 0.95rem;
-        padding: 0.75rem 0;
+        padding: 0.5rem 0 0 0;
+        margin-top: 0.15rem;
+    }
+    .cotizar-grid {
+        gap: 0;
+        row-gap: 0;
+    }
+    .cotizar-images {
+        margin-top: -2.5rem;
     }
     .footer-content {
         grid-template-columns: 1fr;

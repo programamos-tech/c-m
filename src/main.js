@@ -100,6 +100,86 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Servicios carrusel: en tablet/móvil, scroll nativo (arrastre lo hace el navegador) + auto-scroll con scrollLeft
+(function () {
+    const wrap = document.querySelector('.services-carousel-wrap');
+    if (!wrap) return;
+
+    const QUERY = '(max-width: 1024px)';
+    const PAUSE_AFTER_INTERACTION_MS = 2500;
+    const LOOP_DURATION_S = 45;
+
+    let rafId = null;
+    let userInteracting = false;
+    let resumeTimeout = null;
+
+    function getSegmentWidth() {
+        const w = wrap.scrollWidth;
+        return w > wrap.clientWidth ? w / 3 : wrap.clientWidth;
+    }
+
+    function tick() {
+        if (userInteracting || !window.matchMedia(QUERY).matches) return;
+        const segment = getSegmentWidth();
+        wrap.scrollLeft += segment / (LOOP_DURATION_S * 60);
+        if (wrap.scrollLeft >= segment) wrap.scrollLeft -= segment;
+        rafId = requestAnimationFrame(tick);
+    }
+
+    function startAutoScroll() {
+        if (rafId != null) return;
+        const segment = getSegmentWidth();
+        if (segment > 0) wrap.scrollLeft = wrap.scrollLeft % segment;
+        rafId = requestAnimationFrame(tick);
+    }
+
+    function stopAutoScroll() {
+        if (rafId != null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
+    }
+
+    function onInteractionStart() {
+        if (!window.matchMedia(QUERY).matches) return;
+        userInteracting = true;
+        stopAutoScroll();
+        if (resumeTimeout) {
+            clearTimeout(resumeTimeout);
+            resumeTimeout = null;
+        }
+    }
+
+    function onInteractionEnd() {
+        if (!window.matchMedia(QUERY).matches) return;
+        if (resumeTimeout) clearTimeout(resumeTimeout);
+        resumeTimeout = setTimeout(() => {
+            userInteracting = false;
+            startAutoScroll();
+            resumeTimeout = null;
+        }, PAUSE_AFTER_INTERACTION_MS);
+    }
+
+    wrap.addEventListener('touchstart', onInteractionStart, { passive: true });
+    wrap.addEventListener('touchend', onInteractionEnd, { passive: true });
+    wrap.addEventListener('touchcancel', onInteractionEnd, { passive: true });
+    wrap.addEventListener('wheel', onInteractionStart, { passive: true });
+    wrap.addEventListener('mousedown', onInteractionStart);
+    wrap.addEventListener('mouseup', onInteractionEnd);
+    wrap.addEventListener('mouseleave', onInteractionEnd);
+
+    const mq = window.matchMedia(QUERY);
+    mq.addEventListener('change', (e) => {
+        if (e.matches) startAutoScroll();
+        else stopAutoScroll();
+    });
+    if (mq.matches) {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(startAutoScroll);
+        });
+    }
+})();
+
 // Servicios: flip card al hacer click
 document.querySelectorAll('.flip-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -112,6 +192,198 @@ document.querySelectorAll('.flip-card').forEach(card => {
         }
     });
 });
+
+// Acabados carrusel: en tablet y móvil, animación con transform (sin scroll) + tap y arrastre
+(function () {
+    const wrap = document.querySelector('.acabados-carousel-wrap');
+    const track = wrap?.querySelector('.acabados-track');
+    if (!wrap || !track) return;
+
+    const QUERY = '(max-width: 1024px)';
+    const ZONE_RATIO = 0.35;
+    const STEP_RATIO = 0.7;
+    const PAUSE_AFTER_INTERACTION_MS = 2500;
+    const LOOP_DURATION_S = 100;
+
+    let tapHandled = false;
+    let rafId = null;
+    let userInteracting = false;
+    let resumeTimeout = null;
+    let offsetPx = 0;
+    let touchStartX = 0;
+    let touchStartOffset = 0;
+    let didDrag = false;
+
+    function getSegmentWidth() {
+        const w = track.offsetWidth || track.scrollWidth;
+        return w > 0 ? w / 3 : 4000;
+    }
+
+    function applyTransform() {
+        track.style.transform = 'translateX(-' + offsetPx + 'px)';
+    }
+
+    function tick() {
+        if (userInteracting || !window.matchMedia(QUERY).matches) return;
+        const segment = getSegmentWidth();
+        offsetPx += segment / (LOOP_DURATION_S * 60);
+        if (offsetPx >= segment) offsetPx -= segment;
+        if (offsetPx < 0) offsetPx += segment;
+        applyTransform();
+        rafId = requestAnimationFrame(tick);
+    }
+
+    function startAutoScroll() {
+        if (rafId != null) return;
+        const segment = getSegmentWidth();
+        offsetPx = offsetPx % segment;
+        if (offsetPx < 0) offsetPx += segment;
+        applyTransform();
+        rafId = requestAnimationFrame(tick);
+    }
+
+    function stopAutoScroll() {
+        if (rafId != null) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
+        }
+    }
+
+    function onInteractionStart() {
+        if (!window.matchMedia(QUERY).matches) return;
+        userInteracting = true;
+        stopAutoScroll();
+        if (resumeTimeout) {
+            clearTimeout(resumeTimeout);
+            resumeTimeout = null;
+        }
+    }
+
+    function onInteractionEnd() {
+        if (!window.matchMedia(QUERY).matches) return;
+        if (resumeTimeout) clearTimeout(resumeTimeout);
+        resumeTimeout = setTimeout(() => {
+            userInteracting = false;
+            startAutoScroll();
+            resumeTimeout = null;
+        }, PAUSE_AFTER_INTERACTION_MS);
+    }
+
+    function getScrollStep() {
+        return wrap.clientWidth * STEP_RATIO;
+    }
+
+    function handleTap(clientX) {
+        if (!window.matchMedia(QUERY).matches) return false;
+        const rect = wrap.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const w = rect.width;
+        const step = getScrollStep();
+        const segment = getSegmentWidth();
+        if (x < w * ZONE_RATIO) {
+            offsetPx = Math.max(0, offsetPx - step);
+            if (offsetPx < 0) offsetPx += segment;
+            applyTransform();
+            return true;
+        }
+        if (x > w * (1 - ZONE_RATIO)) {
+            offsetPx = offsetPx + step;
+            if (offsetPx >= segment) offsetPx -= segment;
+            applyTransform();
+            return true;
+        }
+        return false;
+    }
+
+    let touchStartY = 0;
+    wrap.addEventListener('touchstart', (e) => {
+        tapHandled = false;
+        didDrag = false;
+        onInteractionStart();
+        if (e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartOffset = offsetPx;
+        }
+    }, { passive: true });
+
+    wrap.addEventListener('touchmove', (e) => {
+        if (e.touches.length !== 1) return;
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > dy && dx > 8) {
+            didDrag = true;
+            e.preventDefault();
+            const segment = getSegmentWidth();
+            const deltaX = touchStartX - e.touches[0].clientX;
+            offsetPx = touchStartOffset + deltaX;
+            while (offsetPx >= segment) offsetPx -= segment;
+            while (offsetPx < 0) offsetPx += segment;
+            applyTransform();
+        }
+    }, { passive: false });
+
+    wrap.addEventListener('touchend', (e) => {
+        if (!didDrag && e.changedTouches && e.changedTouches[0]) {
+            tapHandled = handleTap(e.changedTouches[0].clientX);
+        }
+        onInteractionEnd();
+    }, { passive: true });
+
+    wrap.addEventListener('touchcancel', onInteractionEnd, { passive: true });
+    wrap.addEventListener('wheel', onInteractionStart, { passive: true });
+    wrap.addEventListener('mousedown', (e) => {
+        onInteractionStart();
+        touchStartX = e.clientX;
+        touchStartOffset = offsetPx;
+    });
+    wrap.addEventListener('mousemove', (e) => {
+        if (e.buttons !== 1) return;
+        const segment = getSegmentWidth();
+        const dx = touchStartX - e.clientX;
+        offsetPx = touchStartOffset + dx;
+        while (offsetPx >= segment) offsetPx -= segment;
+        while (offsetPx < 0) offsetPx += segment;
+        applyTransform();
+    });
+    wrap.addEventListener('mouseup', onInteractionEnd);
+    wrap.addEventListener('mouseleave', onInteractionEnd);
+
+    wrap.addEventListener('click', (e) => {
+        if (!window.matchMedia(QUERY).matches) return;
+        if (tapHandled) {
+            e.preventDefault();
+            e.stopPropagation();
+            tapHandled = false;
+            return;
+        }
+        const handled = handleTap(e.clientX);
+        if (handled) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, true);
+
+    const mq = window.matchMedia(QUERY);
+    mq.addEventListener('change', (e) => {
+        if (e.matches) startAutoScroll();
+        else {
+            stopAutoScroll();
+            track.style.transform = '';
+        }
+    });
+
+    const observer = new IntersectionObserver(
+        (entries) => {
+            if (!entries[0]?.isIntersecting || !mq.matches) return;
+            startAutoScroll();
+        },
+        { rootMargin: '80px 0', threshold: 0.01 }
+    );
+    observer.observe(wrap);
+
+    if (mq.matches) startAutoScroll();
+})();
 
 // Lightbox acabados: clic en card abre imagen a pantalla completa
 (function () {
