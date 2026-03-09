@@ -639,7 +639,7 @@ nav ul li a:hover {
     color: var(--text-light);
     font-size: clamp(1.6rem, 3.2vw, 2.5rem);
     line-height: 1;
-    margin-bottom: 0.85rem;
+    margin-bottom: 1.5rem;
     font-weight: 700;
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -1631,10 +1631,11 @@ footer {
     display: inline-flex;
     align-items: center;
     gap: 0;
+    font-size: 0.7rem;
 }
 
 .footer-credit-icon {
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     color: rgba(255, 255, 255, 0.65);
     margin: 0 0.08rem 0 0;
 }
@@ -1892,9 +1893,16 @@ footer {
     .hero-content {
         padding: 0 1.25rem;
     }
+    .hero-container {
+        overflow-x: visible;
+    }
     .hero h1 {
-        font-size: clamp(1.2rem, 4.5vw, 1.65rem);
+        font-size: clamp(1.35rem, 4.5vw, 1.75rem);
         overflow-wrap: break-word;
+    }
+    .hero h1 .hero-line,
+    .hero h1 .hero-line-2 {
+        white-space: nowrap;
     }
     .hero-sub {
         font-size: clamp(0.9rem, 2.2vw, 1rem);
@@ -2112,10 +2120,14 @@ footer {
         padding: 0 0.5rem;
         max-width: 100%;
     }
+    .hero-container {
+        overflow-x: visible;
+    }
     .hero h1 {
-        font-size: clamp(1rem, 4.2vw, 1.4rem);
-        line-height: 1.3;
+        font-size: clamp(0.95rem, 4.5vw, 1.5rem);
+        line-height: 1.25;
         overflow-wrap: break-word;
+        max-width: 100%;
     }
     .hero h1 .hero-line,
     .hero h1 .hero-line-2 {
