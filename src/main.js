@@ -100,36 +100,87 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Servicios carrusel: en tablet/móvil, scroll nativo (arrastre lo hace el navegador) + auto-scroll con scrollLeft
+// Servicios carrusel: tablet = scroll nativo + auto-scroll; móvil = transform + auto-scroll + arrastre (como acabados)
 (function () {
     const wrap = document.querySelector('.services-carousel-wrap');
-    if (!wrap) return;
+    const track = wrap?.querySelector('.carousel-track');
+    if (!wrap || !track) return;
 
-    const QUERY = '(max-width: 1024px)';
+    const QUERY_TABLET = '(min-width: 769px) and (max-width: 1024px)';
+    const QUERY_MOBILE = '(max-width: 768px)';
     const PAUSE_AFTER_INTERACTION_MS = 2500;
     const LOOP_DURATION_S = 45;
+    const TAP_ZONE_RATIO = 0.35;
+    const TAP_STEP_RATIO = 0.75;
 
     let rafId = null;
     let userInteracting = false;
     let resumeTimeout = null;
+    let didDrag = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartOffset = 0;
+    let tappedToScroll = false;
+    let offsetPx = 0;
 
-    function getSegmentWidth() {
+    function isMobile() {
+        return window.matchMedia(QUERY_MOBILE).matches;
+    }
+    function isTablet() {
+        return window.matchMedia(QUERY_TABLET).matches;
+    }
+
+    function getSegmentWidthScroll() {
         const w = wrap.scrollWidth;
         return w > wrap.clientWidth ? w / 3 : wrap.clientWidth;
     }
+    function getSegmentWidthMobile() {
+        const w = track.offsetWidth || track.scrollWidth;
+        return w > 0 ? w / 3 : wrap.clientWidth;
+    }
+    function getSegmentWidth() {
+        return isMobile() ? getSegmentWidthMobile() : getSegmentWidthScroll();
+    }
+    function getTapStep() {
+        return Math.round(wrap.clientWidth * TAP_STEP_RATIO);
+    }
+
+    function applyTransform() {
+        track.style.transform = 'translateX(-' + offsetPx + 'px)';
+    }
 
     function tick() {
-        if (userInteracting || !window.matchMedia(QUERY).matches) return;
-        const segment = getSegmentWidth();
-        wrap.scrollLeft += segment / (LOOP_DURATION_S * 60);
-        if (wrap.scrollLeft >= segment) wrap.scrollLeft -= segment;
+        if (userInteracting) return;
+        if (isMobile()) {
+            const segment = getSegmentWidthMobile();
+            offsetPx += segment / (LOOP_DURATION_S * 60);
+            if (offsetPx >= segment) offsetPx -= segment;
+            if (offsetPx < 0) offsetPx += segment;
+            applyTransform();
+        } else if (isTablet()) {
+            const segment = getSegmentWidthScroll();
+            wrap.scrollLeft += segment / (LOOP_DURATION_S * 60);
+            if (wrap.scrollLeft >= segment) wrap.scrollLeft -= segment;
+        } else {
+            return;
+        }
         rafId = requestAnimationFrame(tick);
     }
 
     function startAutoScroll() {
         if (rafId != null) return;
-        const segment = getSegmentWidth();
-        if (segment > 0) wrap.scrollLeft = wrap.scrollLeft % segment;
+        if (isMobile()) {
+            const segment = getSegmentWidthMobile();
+            if (segment <= 0) return;
+            offsetPx = offsetPx % segment;
+            if (offsetPx < 0) offsetPx += segment;
+            applyTransform();
+        } else if (isTablet()) {
+            const segment = getSegmentWidthScroll();
+            if (segment > 0) wrap.scrollLeft = wrap.scrollLeft % segment;
+        } else {
+            return;
+        }
         rafId = requestAnimationFrame(tick);
     }
 
@@ -141,7 +192,7 @@ document.addEventListener('keydown', (e) => {
     }
 
     function onInteractionStart() {
-        if (!window.matchMedia(QUERY).matches) return;
+        if (!isMobile() && !isTablet()) return;
         userInteracting = true;
         stopAutoScroll();
         if (resumeTimeout) {
@@ -151,7 +202,7 @@ document.addEventListener('keydown', (e) => {
     }
 
     function onInteractionEnd() {
-        if (!window.matchMedia(QUERY).matches) return;
+        if (!isMobile() && !isTablet()) return;
         if (resumeTimeout) clearTimeout(resumeTimeout);
         resumeTimeout = setTimeout(() => {
             userInteracting = false;
@@ -160,23 +211,133 @@ document.addEventListener('keydown', (e) => {
         }, PAUSE_AFTER_INTERACTION_MS);
     }
 
-    wrap.addEventListener('touchstart', onInteractionStart, { passive: true });
-    wrap.addEventListener('touchend', onInteractionEnd, { passive: true });
+    function handleTap(clientX) {
+        if (!isTablet() && !isMobile()) return false;
+        const rect = wrap.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const w = rect.width;
+        const step = getTapStep();
+
+        if (isMobile()) {
+            const segment = getSegmentWidthMobile();
+            if (x < w * TAP_ZONE_RATIO) {
+                offsetPx = Math.max(0, offsetPx - step);
+                if (offsetPx < 0) offsetPx += segment;
+                applyTransform();
+                return true;
+            }
+            if (x > w * (1 - TAP_ZONE_RATIO)) {
+                offsetPx = offsetPx + step;
+                if (offsetPx >= segment) offsetPx -= segment;
+                applyTransform();
+                return true;
+            }
+            return false;
+        }
+
+        const maxScroll = wrap.scrollWidth - wrap.clientWidth;
+        if (maxScroll <= 0) return false;
+        if (x < w * TAP_ZONE_RATIO) {
+            wrap.scrollTo({ left: Math.max(0, wrap.scrollLeft - step), behavior: 'smooth' });
+            return true;
+        }
+        if (x > w * (1 - TAP_ZONE_RATIO)) {
+            wrap.scrollTo({ left: Math.min(maxScroll, wrap.scrollLeft + step), behavior: 'smooth' });
+            return true;
+        }
+        return false;
+    }
+
+    wrap.addEventListener('touchstart', (e) => {
+        onInteractionStart();
+        didDrag = false;
+        if (e.touches.length === 1) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            if (isMobile()) touchStartOffset = offsetPx;
+        }
+    }, { passive: true });
+
+    wrap.addEventListener('touchmove', (e) => {
+        if (e.touches.length !== 1) return;
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > 8 || dy > 8) didDrag = true;
+        if (isMobile() && dx > dy && dx > 8) {
+            e.preventDefault();
+            const segment = getSegmentWidthMobile();
+            const deltaX = touchStartX - e.touches[0].clientX;
+            offsetPx = touchStartOffset + deltaX;
+            while (offsetPx >= segment) offsetPx -= segment;
+            while (offsetPx < 0) offsetPx += segment;
+            applyTransform();
+        }
+    }, { passive: false });
+
+    wrap.addEventListener('touchend', (e) => {
+        tappedToScroll = false;
+        if (!didDrag && e.changedTouches && e.changedTouches[0]) {
+            tappedToScroll = handleTap(e.changedTouches[0].clientX);
+        }
+        onInteractionEnd();
+    }, { passive: true });
+
     wrap.addEventListener('touchcancel', onInteractionEnd, { passive: true });
     wrap.addEventListener('wheel', onInteractionStart, { passive: true });
-    wrap.addEventListener('mousedown', onInteractionStart);
-    wrap.addEventListener('mouseup', onInteractionEnd);
-    wrap.addEventListener('mouseleave', onInteractionEnd);
 
-    const mq = window.matchMedia(QUERY);
-    mq.addEventListener('change', (e) => {
-        if (e.matches) startAutoScroll();
-        else stopAutoScroll();
+    wrap.addEventListener('mousedown', (e) => {
+        didDrag = false;
+        onInteractionStart();
+        if (isMobile()) {
+            touchStartX = e.clientX;
+            touchStartOffset = offsetPx;
+        }
     });
-    if (mq.matches) {
-        requestAnimationFrame(() => {
-            requestAnimationFrame(startAutoScroll);
-        });
+    wrap.addEventListener('mouseup', (e) => {
+        tappedToScroll = false;
+        if (!didDrag) tappedToScroll = handleTap(e.clientX);
+        onInteractionEnd();
+    });
+    wrap.addEventListener('mouseleave', onInteractionEnd);
+    wrap.addEventListener('mousemove', (e) => {
+        if (e.buttons !== 1) return;
+        didDrag = true;
+        if (isMobile()) {
+            const segment = getSegmentWidthMobile();
+            const deltaX = touchStartX - e.clientX;
+            offsetPx = touchStartOffset + deltaX;
+            while (offsetPx >= segment) offsetPx -= segment;
+            while (offsetPx < 0) offsetPx += segment;
+            applyTransform();
+        }
+    });
+
+    wrap.addEventListener('click', (e) => {
+        if (tappedToScroll) {
+            e.preventDefault();
+            e.stopPropagation();
+            tappedToScroll = false;
+        }
+    }, true);
+
+    const mqTablet = window.matchMedia(QUERY_TABLET);
+    const mqMobile = window.matchMedia(QUERY_MOBILE);
+    function onScrollModeChange() {
+        if (isMobile()) {
+            track.style.transform = '';
+            startAutoScroll();
+        } else if (isTablet()) {
+            track.style.transform = '';
+            startAutoScroll();
+        } else {
+            stopAutoScroll();
+            track.style.transform = '';
+        }
+    }
+    mqTablet.addEventListener('change', onScrollModeChange);
+    mqMobile.addEventListener('change', onScrollModeChange);
+    if (mqTablet.matches || mqMobile.matches) {
+        requestAnimationFrame(() => requestAnimationFrame(startAutoScroll));
     }
 })();
 

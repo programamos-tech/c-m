@@ -1759,6 +1759,38 @@ footer {
     .projects-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    /* Carrusel servicios: scroll/arrastre en tablet y móvil */
+    section#servicios {
+        overflow-x: visible;
+        overflow-y: visible;
+    }
+    #servicios .container {
+        overflow-x: visible;
+    }
+    .services-carousel-wrap {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        touch-action: pan-x;
+        min-height: 320px;
+    }
+    .services-carousel-wrap::-webkit-scrollbar {
+        display: none;
+    }
+    .services-carousel {
+        overflow: visible;
+        width: max-content;
+        min-width: 300vw;
+    }
+    .services-carousel-wrap .flip-card {
+        scroll-snap-align: start;
+        flex-shrink: 0;
+    }
+    .carousel-track {
+        animation: none;
+    }
 }
 
 /* Tablet horizontal y vertical: ajustes para que la página se vea bien */
@@ -1819,37 +1851,9 @@ footer {
     .carousel-track {
         padding: 1rem 1.5rem;
         gap: 1.25rem;
-        animation: none;
     }
-    /* Permitir que el carrusel haga scroll en móvil: no recortar la sección ni el container */
-       section#servicios {
-        overflow-x: visible;
-        overflow-y: visible;
-    }
-    #servicios .container {
-        overflow-x: visible;
-    }
-    /* Carrusel servicios: scroll nativo */
     .services-carousel-wrap {
-        overflow-x: scroll;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
-        touch-action: manipulation;
         min-height: 320px;
-    }
-    .services-carousel-wrap::-webkit-scrollbar {
-        display: none;
-    }
-    .services-carousel {
-        overflow: visible;
-        width: max-content;
-        min-width: 300vw;
-    }
-    .services-carousel-wrap .flip-card {
-        scroll-snap-align: start;
-        touch-action: pan-x;
     }
     .vision-mission {
         gap: 2rem;
@@ -2044,6 +2048,22 @@ footer {
         right: 1.5rem;
         width: 44px;
         height: 44px;
+    }
+    /* Carrusel servicios en móvil: control por JS (transform) = auto-scroll + arrastre, sin scroll nativo */
+    section#servicios {
+        overflow-x: clip;
+    }
+    .services-carousel-wrap {
+        overflow: hidden;
+        touch-action: pan-y;
+    }
+    .services-carousel {
+        overflow: visible;
+        width: max-content;
+    }
+    .services-carousel-wrap .carousel-track {
+        animation: none;
+        will-change: transform;
     }
 }
 
