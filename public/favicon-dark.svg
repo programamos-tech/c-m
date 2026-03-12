@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Mismo icono - modo oscuro (icono blanco) -->
+  <path fill="#ffffff" d="M16 2L28 10v12L16 30 4 22V10L16 2z"/>
+  <path fill="none" stroke="#1a1a1a" stroke-width="1.2" stroke-linejoin="round" d="M10 16l6-8 6 8-6 8-6-8z"/>
+</svg>
