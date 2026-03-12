@@ -2057,21 +2057,25 @@ footer {
         width: 44px;
         height: 44px;
     }
-    /* Carrusel servicios en móvil: control por JS (transform) = auto-scroll + arrastre, sin scroll nativo */
+    /* Carrusel servicios en móvil: scroll nativo horizontal (mover hacia los lados), sin animación */
     section#servicios {
-        overflow-x: clip;
+        overflow-x: visible;
+        overflow-y: visible;
     }
     .services-carousel-wrap {
-        overflow: hidden;
-        touch-action: pan-y;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        touch-action: pan-x;
+        min-height: 320px;
     }
-    .services-carousel {
-        overflow: visible;
-        width: max-content;
+    .services-carousel-wrap::-webkit-scrollbar {
+        display: none;
     }
     .services-carousel-wrap .carousel-track {
         animation: none;
-        will-change: transform;
     }
 }
 

@@ -152,12 +152,9 @@ document.addEventListener('keydown', (e) => {
     function tick() {
         if (userInteracting) return;
         if (isMobile()) {
-            const segment = getSegmentWidthMobile();
-            offsetPx += segment / (LOOP_DURATION_S * 60);
-            if (offsetPx >= segment) offsetPx -= segment;
-            if (offsetPx < 0) offsetPx += segment;
-            applyTransform();
-        } else if (isTablet()) {
+            return; /* En móvil solo scroll manual, sin animación */
+        }
+        if (isTablet()) {
             const segment = getSegmentWidthScroll();
             wrap.scrollLeft += segment / (LOOP_DURATION_S * 60);
             if (wrap.scrollLeft >= segment) wrap.scrollLeft -= segment;
@@ -169,13 +166,8 @@ document.addEventListener('keydown', (e) => {
 
     function startAutoScroll() {
         if (rafId != null) return;
-        if (isMobile()) {
-            const segment = getSegmentWidthMobile();
-            if (segment <= 0) return;
-            offsetPx = offsetPx % segment;
-            if (offsetPx < 0) offsetPx += segment;
-            applyTransform();
-        } else if (isTablet()) {
+        if (isMobile()) return; /* En móvil no hay auto-scroll */
+        if (isTablet()) {
             const segment = getSegmentWidthScroll();
             if (segment > 0) wrap.scrollLeft = wrap.scrollLeft % segment;
         } else {
@@ -192,7 +184,7 @@ document.addEventListener('keydown', (e) => {
     }
 
     function onInteractionStart() {
-        if (!isMobile() && !isTablet()) return;
+        if (!isTablet()) return;
         userInteracting = true;
         stopAutoScroll();
         if (resumeTimeout) {
@@ -202,7 +194,7 @@ document.addEventListener('keydown', (e) => {
     }
 
     function onInteractionEnd() {
-        if (!isMobile() && !isTablet()) return;
+        if (!isTablet()) return;
         if (resumeTimeout) clearTimeout(resumeTimeout);
         resumeTimeout = setTimeout(() => {
             userInteracting = false;
@@ -217,26 +209,9 @@ document.addEventListener('keydown', (e) => {
         const x = clientX - rect.left;
         const w = rect.width;
         const step = getTapStep();
-
-        if (isMobile()) {
-            const segment = getSegmentWidthMobile();
-            if (x < w * TAP_ZONE_RATIO) {
-                offsetPx = Math.max(0, offsetPx - step);
-                if (offsetPx < 0) offsetPx += segment;
-                applyTransform();
-                return true;
-            }
-            if (x > w * (1 - TAP_ZONE_RATIO)) {
-                offsetPx = offsetPx + step;
-                if (offsetPx >= segment) offsetPx -= segment;
-                applyTransform();
-                return true;
-            }
-            return false;
-        }
-
         const maxScroll = wrap.scrollWidth - wrap.clientWidth;
         if (maxScroll <= 0) return false;
+        /* Móvil y tablet: scroll nativo con tap en zonas laterales */
         if (x < w * TAP_ZONE_RATIO) {
             wrap.scrollTo({ left: Math.max(0, wrap.scrollLeft - step), behavior: 'smooth' });
             return true;
@@ -254,7 +229,6 @@ document.addEventListener('keydown', (e) => {
         if (e.touches.length === 1) {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-            if (isMobile()) touchStartOffset = offsetPx;
         }
     }, { passive: true });
 
@@ -263,16 +237,8 @@ document.addEventListener('keydown', (e) => {
         const dx = Math.abs(e.touches[0].clientX - touchStartX);
         const dy = Math.abs(e.touches[0].clientY - touchStartY);
         if (dx > 8 || dy > 8) didDrag = true;
-        if (isMobile() && dx > dy && dx > 8) {
-            e.preventDefault();
-            const segment = getSegmentWidthMobile();
-            const deltaX = touchStartX - e.touches[0].clientX;
-            offsetPx = touchStartOffset + deltaX;
-            while (offsetPx >= segment) offsetPx -= segment;
-            while (offsetPx < 0) offsetPx += segment;
-            applyTransform();
-        }
-    }, { passive: false });
+        /* En móvil el scroll es nativo: no preventDefault, el usuario desliza hacia los lados */
+    }, { passive: true });
 
     wrap.addEventListener('touchend', (e) => {
         tappedToScroll = false;

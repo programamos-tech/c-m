@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Sitemap (ajusta el dominio si usas otro en producción)
+Sitemap: https://cymarquitectura.com/sitemap.xml
